@@ -1,20 +1,25 @@
 import React, { useState , useEffect} from 'react';
 import '../src/index.css';
 import axios from 'axios';
-
-
+import validator from 'validator';
+import toast from 'react-hot-toast';
+import {Toaster} from 'react-hot-toast';
 function App() {
   const [longUrl, setLongUrl] = useState('');
   const [shortUrl, setShortUrl] = useState('');
   const [urls, setUrls] = useState([]);
 
-  useEffect(() => {
-    console.log({ shortUrl }); // Log the shortUrl whenever it changes
-  }, [shortUrl]); // useEffect will be triggered whenever shortUrl changes
-
+  useEffect (() => {
+    console.log("urls");
+  },[urls]) ;
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+
+      if (!validator.isURL(longUrl)) {
+        toast.error("enter valid url!");
+        return;
+      }
       const response = await axios.post('http://localhost:8080/api/shorten', {
         originalUrl: longUrl,
       });
@@ -29,26 +34,26 @@ function App() {
 
   const fetchUrls = async () => {
     try {
-      console.log({shortUrl});
-      const response = await axios.get("http://localhost:3000/api/J-Kb807K");
+      const response = await axios.get('http://localhost:8080/api/shortened');
       setUrls(response.data);
     } catch (error) {
       console.error('Error fetching URLs:', error);
     }
   };
 
-  // const handleShortUrlClick = async (shortCode) => {
-  //   try {
-  //     const response = await axios.get(`http://localhost:8080/${shortCode}`);
-  //     const originalUrl = response.request.res.responseUrl;
-  //     window.location.href = originalUrl; // Redirect the user to the original URL
-  //   } catch (error) {
-  //     console.error('Error fetching URL:', error);
-  //   }
-  // };
+  const handleShortUrlClick = async (shortCode) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/short/${shortCode}`);
+      const originalUrl = response.data;
+      window.open(originalUrl, '_blank'); // Redirect the user to the original URL
+    } catch (error) {
+      console.error('Error fetching URL:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position='top-center' reverseOrder="false"></Toaster>
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">URL Shortener</h2>
@@ -113,15 +118,15 @@ function App() {
                 </th>
               </tr>
             </thead>
-            {/* <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200">
               {urls.map((url) => (
-                <tr key={url.short_code} onClick={() => handleShortUrlClick(url.original_url)}>
+                <tr key={url.short_code} onClick={() => handleShortUrlClick(url.short_code)}>
                   <td className="px-6 py-4 whitespace-nowrap">{url.original_url}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{`http://localhost:8080/${url.short_code}`}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{url.count}</td>
                 </tr>
               ))}
-            </tbody> */}
+            </tbody>
           </table>
         </div>
       </div>
